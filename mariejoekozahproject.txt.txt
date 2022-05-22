@@ -1,0 +1,559 @@
+import java.util.ArrayList;
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.*;
+import java.awt.image.BufferedImage;
+import java.io.File;
+
+import javax.imageio.ImageIO;
+
+
+//initiating class owner
+class Owner {
+
+    // an owner is defined by his: Name,PinCode
+    private String OwnerName;
+    private int PinCode;
+
+    // Constructor
+    public Owner(String OwnerName, int PinCode) {
+        // owner name and pincode set
+        this.OwnerName = OwnerName;
+        this.PinCode = PinCode;
+
+    }
+
+    // Get Onwer Name
+    public String getOwnerName() {
+        return OwnerName;
+    }
+
+    // Get the pincode
+    public int getPinCode() {
+        return PinCode;
+    }
+
+    // To string
+    public String toString() {
+        return "Name:" + OwnerName + "-PinCode:" + PinCode;
+    }
+}
+
+// Class Account
+class Account {
+    // An Account is defined by His account number, it's owner and the balance in
+    // the account
+    private String AccountNumber;
+    private Owner owner;
+    private double balance;
+
+    // Constructor for the class
+    public Account(String AccountNumber, Owner owner, double balance) {
+        this.AccountNumber = AccountNumber;
+        this.owner = owner;
+        this.balance = balance;
+    }
+
+    // getter for the account Number
+    public String getAccountNumber() {
+        return AccountNumber;
+    }
+
+    // getter for the Owner
+    public Owner getOwner() {
+        return owner;
+    }
+
+    // getter for the balance
+    public double getBalance() {
+        return balance;
+    }
+
+    // setter for the balance in order to re-set in case of withdraw or deposit
+    public void setBalance(double balance) {
+        this.balance = balance;
+    }
+
+    // To string override for the class
+    @Override
+    public String toString() {
+        return "Account [AccountNumber=" + AccountNumber + ", balance=" + balance + ", owner=" + owner + "]";
+    }
+
+}
+
+// Login Page Frame
+class LoginPageFrame extends JFrame implements ActionListener {
+    // initiating the buttons
+    private JButton Login;
+    private JButton[] ButtonList;
+
+    // Initiating the text fields: one for the Password The other for the password
+    private JTextField AccountNumber;
+    private JPasswordField PinCode;
+
+    // Label result in case The Account entered is incorrect and label containing image
+    private JLabel result;
+    private JLabel image;
+
+
+    // Account array list to save the accounts passed from main application
+    private ArrayList<Account> accounts;
+
+    // Booleans to check if it is the first key entered in textboxes to put them as
+    // null in case it is
+    private boolean FirstKey1 = true;
+    private boolean FirstKey2 = true;
+
+    // The font and color used for the rest of the application
+    private Font myFont = new Font("Agency FB", Font.BOLD, 25);
+    private Font myFont2 = new Font("Agency FB", Font.BOLD, 20);
+    private Color myColor = new Color(15, 35, 71);
+   
+
+    // constructor
+    public LoginPageFrame(ArrayList<Account> accounts) {
+        // call for parent constructor to name the frame
+        super("My Atm Machine");
+
+        // getting the accounts from main to handle the login
+        this.accounts = accounts;
+
+        // initiating the buttons
+        initiateButtons();
+        Login = new JButton("Login");
+        // initiating text field
+        AccountNumber = new JTextField("Account Number");
+        PinCode = new JPasswordField("XXXX", 4);
+        // initiating labels
+        result = new JLabel();
+
+
+        //try catch in case there's no image found
+        try{
+            //reading the image then adding it to a label
+            BufferedImage img = ImageIO.read(new File("myLogo.png"));
+            image= new JLabel(new ImageIcon(img));
+            image.setBounds(300, 20, 170, 180);
+            //adding image to frame
+            add(image);
+        }
+        catch(Exception e){}
+
+        
+
+        // setting background colors for program
+        getContentPane().setBackground(new Color(9, 22, 34));
+
+        // setting the result bounds in case we get an ivalid login + foreground
+        result.setFont(myFont2);
+        //horizontal allignment for it to be in the center
+        result.setHorizontalAlignment(JTextField.CENTER);
+        result.setForeground(Color.RED);
+        result.setBounds(350, 250, 100, 50);
+
+        // account number font + alignment and bound + foreground
+        AccountNumber.setFont(myFont);
+        AccountNumber.setForeground(myColor);
+        AccountNumber.setHorizontalAlignment(JTextField.CENTER);
+        AccountNumber.setBounds(30, 30, 250, 30);
+
+        //setting font + foreground + alignments and bounds for pincode
+        PinCode.setFont(myFont);
+        PinCode.setForeground(myColor);
+        PinCode.setHorizontalAlignment(JTextField.CENTER);
+        PinCode.setBounds(80, 80, 150, 30);
+
+        //setting font + foreground + alignments and bounds for Login
+        Login.setFont(myFont);
+        Login.setForeground(myColor);
+        Login.addActionListener(this);
+        Login.setBounds(350, 300, 100, 50);
+
+        //adding all the buttons
+        add(Login);
+        add(AccountNumber);
+        add(PinCode);
+        add(result);
+        addDigits();
+
+        //adding key listeners for the account number text field
+        AccountNumber.addKeyListener(new KeyAdapter() {
+            public void keyTyped(KeyEvent e) {
+                //if it is the first key typed erase everything + set to false
+                if (FirstKey1) {
+                    AccountNumber.setText("");
+                    FirstKey1 = false;
+                }
+                //if it's different from a digit consume 
+                if (e.getKeyChar() < '0' || e.getKeyChar() > '9')
+                    e.consume();
+            }
+        });
+
+        //adding key listeners for the pin code text field
+        PinCode.addKeyListener(new KeyAdapter() {
+            public void keyTyped(KeyEvent e) {
+                if (FirstKey2) {
+                    //if first key delete everything + set to false
+                    PinCode.setText("");
+                    FirstKey2 = false;
+                }
+                //if other than a digit consume and if bigger than a 4 digit consume
+                if (e.getKeyChar() < '0' || e.getKeyChar() > '9' || PinCode.getPassword().length >= 4)
+                    e.consume();
+            }
+        });
+
+        //set layout + position + visibility+ size and default close
+        setLayout(null);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setLocationRelativeTo(null);
+        setSize(500, 480);
+        //not letting a resize
+        setResizable(false);
+        repaint();
+        setVisible(true);
+    }
+
+    //adding all the buttons to the frame
+    public void addDigits() {
+        for (int i = 0; i < 10; i++) {
+            add(ButtonList[i]);
+        }
+    }
+
+    //initiating eevery button
+    public void initiateButtons() {
+        //initiating the array
+        ButtonList = new JButton[10];
+        //loop through all array
+        int x = 50, y = 140;
+        //first button to be displayed on the screen is 1
+        for (int i = 0; i < 9; i++) {
+            ButtonList[i] = new JButton(Integer.toString(i + 1));
+            ButtonList[i].setForeground(myColor);
+            ButtonList[i].setBounds(x, y, 50, 50);
+            ButtonList[i].setFont(myFont);
+            x += 80;
+            if (i == 2 || i == 5) {
+                x = 50;
+                y += 80;
+            }
+            ButtonList[i].addActionListener(this);
+
+        }
+        //initiating the 0 components alone
+        ButtonList[9] = new JButton("0");
+        ButtonList[9].setBounds(130, 380, 50, 50);
+        ButtonList[9].setForeground(myColor);
+        ButtonList[9].setFont(myFont);
+        ButtonList[9].addActionListener(this);
+
+    }
+
+    //function to validate the login
+    public int validateLogin() {
+        //looping through the array passed as paramater taken from the main
+        for (int i = 0; i < accounts.size(); i++) {
+            //if account number is equal to one existing check for the pinCode
+            if (accounts.get(i).getAccountNumber().equals(AccountNumber.getText())) {
+                String s = new String(PinCode.getPassword());
+                if (accounts.get(i).getOwner().getPinCode() == Integer.parseInt(s))
+                //if we find an equal pincode return the position where it was found
+                    return i;
+
+            }
+        }
+        //return -1 in case none was found
+        return -1;
+    }
+
+    //overriding the action performed we have the digits and login button
+    @Override
+    public void actionPerformed(ActionEvent e) {
+
+        //if the source was the login button check if it is valid
+        if (e.getSource() == Login) {
+            int x = validateLogin();
+            //if valid hide the login page and reset all its texts to empty
+            if (x != -1) {
+                setVisible(false);
+                AccountNumber.setText("");
+                PinCode.setText("");
+                //call constructor for the Account handling frame that will accept the login page it came from as parameter
+                new AccountHandlingFrame(accounts.get(x), this);
+            } else {
+                //else it is invalid set everything to empty
+                result.setText("Invalid Login");
+                AccountNumber.setText("");
+                PinCode.setText("");
+            }
+
+        }
+        //check if source is coming from digit buttons
+        for (int i = 0; i <= 9; i++)
+            if (e.getSource() == ButtonList[i]) {
+                //if it is that source check if its the first key in the password field and set to empty
+                if (FirstKey2) {
+                    PinCode.setText("");
+                    FirstKey2 = false;
+                }
+                //if the length is more than 4 consume
+                if (PinCode.getPassword().length >= 4)
+                    return;
+                if (i != 9)//if its different from the digit 0 add i+1 since the button[0] is 1
+                    PinCode.setText(new String(PinCode.getPassword()) + Integer.toString(i + 1));
+                else//it is 0
+                    PinCode.setText(new String(PinCode.getPassword()) + Integer.toString(0));
+
+            }
+    }
+}
+
+//Frame to handle the account
+class AccountHandlingFrame extends JFrame implements ActionListener {
+    //spinners to see the amount of bills a person wants to draw
+    private JSpinner[] Bills;
+
+    //label for each spinner
+    private JLabel[] billAmount;
+    //labels for the result of transaction and balance
+    private JLabel AccountBalance;
+    private JLabel result;
+    private JLabel welcomeText;
+
+    //buttons
+    private JRadioButton WithDraw, Deposit;
+    private ButtonGroup grp;
+    private JButton PerformTransaction, LogOut;
+ 
+    //account to handle and the login page it came from
+    private Account acc;
+    private LoginPageFrame login;
+
+    // The font and color used for the rest of the application
+    private Font myFont = new Font("Agency FB", Font.BOLD, 25);
+    private Font myFont2 = new Font("Agency FB", Font.BOLD, 17);
+    private Color myColor = new Color(15, 35, 71);
+
+    public AccountHandlingFrame(Account acc, LoginPageFrame login) {
+        //calling super constructor to name the tab
+        super("Account handling");
+
+        // setting background colors for program
+        getContentPane().setBackground(new Color(9, 22, 34));
+
+        //saving the account to handle and the login page to reset it to true if the user wishes to log out
+        this.login = login;
+        this.acc = acc;
+
+        //initiate the bills, labels and radio buttons
+        initiateBills();
+        initiateLabels();
+        initiateRadioButtons();
+
+        //initiating rest of labels
+        welcomeText= new JLabel("Welcome "+ acc.getOwner().getOwnerName());
+        result = new JLabel();
+        AccountBalance = new JLabel(Double.toString(acc.getBalance()) + "$");
+        PerformTransaction = new JButton("Perform Transaction");
+        LogOut = new JButton("LogOut");
+
+        //setting bounds + font + color for perform transaction
+        PerformTransaction.setBounds(120, 290, 170, 20);
+        PerformTransaction.setFont(myFont2);
+        PerformTransaction.setForeground(myColor);
+
+        //setting bounds + font + color for perform logout
+        LogOut.setBounds(280, 330, 100, 30);
+        LogOut.setFont(myFont2);
+        LogOut.setForeground(myColor);
+
+        //font + color for result
+        result.setFont(myFont2);
+        result.setForeground(Color.red);
+
+
+        //setting bounds + alignment + foreground and font for the account balance
+        AccountBalance.setHorizontalAlignment(JLabel.CENTER);
+        AccountBalance.setBounds(140, 50, 100, 50);
+        AccountBalance.setForeground(Color.white);
+        AccountBalance.setFont(myFont);
+
+        //setting welcome text for the account
+        welcomeText.setHorizontalAlignment(JLabel.CENTER);
+        welcomeText.setBounds(0,0,400,50);
+        welcomeText.setForeground(Color.red);
+        welcomeText.setFont(myFont);
+        
+
+        //adding action listeners
+        PerformTransaction.addActionListener(this);
+        LogOut.addActionListener(this);
+
+        //adding rest of labels
+        add(AccountBalance);
+        add(PerformTransaction);
+        add(LogOut);
+        add(welcomeText);
+
+        //setting frame to visible and its position
+        setLayout(null);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setLocationRelativeTo(null);
+        setResizable(false);
+        setSize(400, 400);
+        setVisible(true);
+    }
+
+    public void initiateBills() {
+        //initial coordinates
+        int x = 180, y = 170;
+        //adding the spinners
+        Bills = new JSpinner[4];
+        for (int i = 0; i < 4; i++) {
+            // adding a custom spinner with initial value 0 minimum 0 and max 100
+            SpinnerModel myModel = new SpinnerNumberModel(0, 0, 100, 1);
+            //initiating with the model and setting font and colors
+            Bills[i] = new JSpinner(myModel);
+            Bills[i].setFont(myFont2);
+            Bills[i].setForeground(myColor);
+            Bills[i].setBounds(x, y, 50, 20);
+            add(Bills[i]);
+            //incrementing y to change the position
+            y += 28;
+        }
+    }
+    //function to initiate the labels of the spinners
+    public void initiateLabels() {
+        billAmount = new JLabel[4];
+        //giving the text value for each
+        billAmount[0] = new JLabel("100$:");
+        billAmount[1] = new JLabel("50$:");
+        billAmount[2] = new JLabel("20$:");
+        billAmount[3] = new JLabel("10$:");
+
+        int x = 140, y = 170;
+        for (int i = 0; i < 4; i++) {
+            //initiating their bounds and alignment and font
+            billAmount[i].setBounds(x, y, 40, 20);
+            billAmount[i].setForeground(Color.white);
+            billAmount[i].setFont(myFont2);
+            billAmount[i].setHorizontalAlignment(JLabel.RIGHT);
+            y += 28;
+            //adding to frame
+            add(billAmount[i]);
+        }
+    }
+    //function to initiate radio buttons
+    public void initiateRadioButtons() {
+        //intiation
+        WithDraw = new JRadioButton("Withdraw");
+        Deposit = new JRadioButton("Deposit");
+
+        //setting colors
+        WithDraw.setBackground(new Color(9, 22, 34));
+        Deposit.setBackground(new Color(9, 22, 34));
+
+        //setting foreground
+        WithDraw.setForeground(Color.WHITE);
+        Deposit.setForeground(Color.white);
+
+        //setting font
+        WithDraw.setFont(myFont2);
+        Deposit.setFont(myFont2);
+
+        //grouping them
+        grp = new ButtonGroup();
+        grp.add(WithDraw);
+        grp.add(Deposit);
+
+        //setting bounds
+        WithDraw.setBounds(75, 100, 130, 30);
+        Deposit.setBounds(225, 100, 130, 30);
+        //adding to frame
+        add(WithDraw);
+        add(Deposit);
+
+    }
+
+    //action perormed function
+    @Override
+    public void actionPerformed(ActionEvent e) {
+        //if it is perform transaction 
+        if (e.getSource() == PerformTransaction) {
+            //initiate result
+            result.setText("");
+            result.setHorizontalAlignment(JLabel.CENTER);
+            result.setBounds(120, 130, 150, 20);
+            add(result);
+            //if no radio button selected result should show no transaction done
+            if (!WithDraw.isSelected() && !Deposit.isSelected())
+                result.setText("No Transaction Selected");
+
+            else {
+                //else one is selcted compute the ammount in the spinners
+                result.setText("");
+                double sumRequested = 0;
+                //first box has 100$ bills second 50...
+                sumRequested += (int) Bills[0].getValue() * 100;
+                sumRequested += (int) Bills[1].getValue() * 50;
+                sumRequested += (int) Bills[2].getValue() * 20;
+                sumRequested += (int) Bills[3].getValue() * 10;
+                //set value to 0 again
+                Bills[0].setValue(0);
+                Bills[1].setValue(0);
+                Bills[2].setValue(0);
+                Bills[3].setValue(0);
+                if (sumRequested != 0) {
+                    //if sum requested is not 0 check for transaction
+                    //if withdraw
+                    if (WithDraw.isSelected()) {
+                        //make sure it is smaller than the balance since u cant withdraw more
+                        if (sumRequested > acc.getBalance()) {
+                            result.setText("Not Enough Money");
+                            return;
+                        } else {//if it is smaller add it to balance
+                            acc.setBalance(acc.getBalance() - sumRequested);
+                            AccountBalance.setText(Double.toString(acc.getBalance()) + "$");
+                        }
+                    } else {
+                        //else is deposit
+                        acc.setBalance(acc.getBalance() + sumRequested);
+                        AccountBalance.setText(Double.toString(acc.getBalance()) + "$");
+                    }
+                    //set result to transaction complete
+                    result.setText("Transaction Complete");
+                }
+
+            }
+
+        }
+        //if the source is logout set the login frame back to visible and this frame to false
+        if (e.getSource() == LogOut) {
+            setVisible(false);
+            login.setVisible(true);
+        }
+
+    }
+
+}
+//Main Function
+public class FinalPorject {
+    public static ArrayList<Account> accounts;
+
+    public static void main(String[] args) throws Exception {
+        accounts = new ArrayList<Account>();
+        createAccounts(accounts);
+        LoginPageFrame f = new LoginPageFrame(accounts);
+
+    }
+    //creating accounts
+    public static void createAccounts(ArrayList<Account> list) {
+        Account acc1 = new Account("2022020779", new Owner("Joe Makhoul", 2220), 5000);
+        Account acc2 = new Account("2022020770", new Owner("Christopher", 2221), 10000);
+        list.add(acc1);
+        list.add(acc2);
+    }
+}
